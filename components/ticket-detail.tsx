@@ -5,6 +5,7 @@ import Link from "next/link";
 import { formatRelativeTime } from "@/lib/utils";
 import { canEditSlaFields, canChangeAssignee } from "@/lib/audit";
 import type { SessionUser } from "@/lib/auth";
+import type { TicketStatus } from "@/types";
 import {
   MessageSquare,
   Paperclip,
