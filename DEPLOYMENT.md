@@ -48,7 +48,64 @@ Yes, you can deploy this app. Here’s what to change and where you can host it.
 
 ---
 
-## Option B: Railway / Render / Fly.io (Node + persistent disk)
+## Deploy on Render (step-by-step)
+
+1. **Switch Prisma to PostgreSQL** (do this in your repo before or after connecting Render)
+
+   - In `prisma/schema.prisma`, change the datasource:
+     - `provider = "sqlite"` → `provider = "postgresql"`
+     - Keep `url = env("DATABASE_URL")`.
+   - Commit and push.
+
+2. **Create a PostgreSQL database on Render**
+
+   - Go to [dashboard.render.com](https://dashboard.render.com) → **New** → **PostgreSQL**.
+   - Name it (e.g. `opsdesk-db`), choose region, create.
+   - Open the DB → **Info** tab and copy **Internal Database URL** (use this for the Web Service so it stays private).
+
+3. **Create a Web Service**
+
+   - **New** → **Web Service**.
+   - Connect your GitHub/GitLab repo and select the `opsdesk` repo.
+   - Configure:
+     - **Name**: e.g. `opsdesk`
+     - **Region**: same as the DB.
+     - **Runtime**: **Node**.
+     - **Build Command**: `npm install && npx prisma generate && npm run build`
+     - **Start Command**: `npm start`
+     - **Instance type**: Free or paid (Free sleeps after inactivity).
+
+4. **Environment variables** (Web Service → **Environment**)
+
+   - `DATABASE_URL` = paste the **Internal Database URL** from the Postgres service (or **External** if you need to run migrations from your machine).
+   - `NEXTAUTH_SECRET` = generate one, e.g. run `openssl rand -base64 32` locally and paste the result.
+   - `NEXTAUTH_URL` = leave empty for the first deploy; after the first deploy Render will show a URL like `https://opsdesk-xxxx.onrender.com`. Then add:
+     - `NEXTAUTH_URL` = `https://opsdesk-xxxx.onrender.com` (your actual URL, no trailing slash).
+
+5. **First deploy**
+
+   - Click **Create Web Service**. Render will install, build, and start the app.
+   - After the first deploy, copy the service URL (e.g. `https://opsdesk-xxxx.onrender.com`), add `NEXTAUTH_URL` with that value, and **Save** (Render will redeploy).
+
+6. **Create tables and seed the database (one time)**
+
+   - From your **local machine** (with the repo and Node installed), run:
+     ```bash
+     export DATABASE_URL="postgresql://..."   # use the External Database URL from Render Postgres
+     npx prisma db push
+     npm run db:seed
+     ```
+   - Or use the **Internal Database URL** if your app can reach it (e.g. from a Render Shell: **Shell** tab on the Web Service and run the same commands with `DATABASE_URL` already set).
+
+7. **Sign in**
+   - Open your Render URL. Log in with:
+     - **Admin**: `admin@opsdesk.local` / `demo123` (then change the password).
+
+**Attachments:** On Render, files in `public/uploads/` are written to the instance disk. They persist until the service is redeployed or the instance is replaced. For long-term storage, add S3 (or similar) and change the attachments API later.
+
+---
+
+## Option B: Railway / Fly.io (Node + persistent disk)
 
 These run a long-lived Node process and can give you a persistent filesystem, so you have more flexibility.
 
