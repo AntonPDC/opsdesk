@@ -28,7 +28,10 @@ export async function GET(req: NextRequest) {
   if (assigneeId) where.assigneeId = assigneeId;
   if (category) where.category = category;
   if (session.user.role === "USER") {
-    where.requesterId = session.user.id;
+    where.OR = [
+      { requesterId: session.user.id },
+      { assigneeId: session.user.id },
+    ];
   }
 
   const tickets = await prisma.ticket.findMany({

@@ -28,13 +28,13 @@ type TicketWithRelations = {
   updatedAt: Date;
   requester: { id: string; name: string; email: string };
   assignee: { id: string; name: string; email: string } | null;
-  comments: Array<{
+  comments?: Array<{
     id: string;
     body: string;
     createdAt: Date;
     user: { id: string; name: string; email: string };
   }>;
-  attachments: Array<{
+  attachments?: Array<{
     id: string;
     filename: string;
     path: string;
@@ -92,7 +92,7 @@ export function TicketDetail({
     setLoadingComment(false);
     if (!res.ok) return;
     const newComment = await res.json();
-    setTicket((t) => ({ ...t, comments: [...t.comments, newComment] }));
+    setTicket((t) => ({ ...t, comments: [...(t.comments ?? []), newComment] }));
     setComment("");
   }
 
@@ -104,7 +104,7 @@ export function TicketDetail({
     });
     if (!res.ok) return;
     const updated = await res.json();
-    setTicket(updated);
+    setTicket((prev) => ({ ...prev, ...updated }));
   }
 
   async function handleAssigneeChange(assigneeId: string | null) {
@@ -115,7 +115,7 @@ export function TicketDetail({
     });
     if (!res.ok) return;
     const updated = await res.json();
-    setTicket(updated);
+    setTicket((prev) => ({ ...prev, ...updated }));
   }
 
   async function handleSlaChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -129,7 +129,7 @@ export function TicketDetail({
     });
     if (!res.ok) return;
     const updated = await res.json();
-    setTicket(updated);
+    setTicket((prev) => ({ ...prev, ...updated }));
   }
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -147,7 +147,7 @@ export function TicketDetail({
     e.target.value = "";
     if (!res.ok) return;
     const att = await res.json();
-    setTicket((t) => ({ ...t, attachments: [...t.attachments, att] }));
+    setTicket((t) => ({ ...t, attachments: [...(t.attachments ?? []), att] }));
   }
 
   const statusOptions: TicketStatus[] = [
@@ -306,7 +306,7 @@ export function TicketDetail({
             }`}
           >
             <MessageSquare className="h-4 w-4" />
-            Comments ({ticket.comments.length})
+            Comments ({(ticket.comments ?? []).length})
           </button>
           <button
             type="button"
@@ -345,7 +345,7 @@ export function TicketDetail({
             </form>
 
             <div className="space-y-4">
-              {ticket.comments.map((c) => (
+              {(ticket.comments ?? []).map((c) => (
                 <div
                   key={c.id}
                   className="rounded-lg border border-slate-800 bg-slate-800/30 p-4"
@@ -411,11 +411,11 @@ export function TicketDetail({
             {uploading ? "Uploading…" : "Upload"}
           </label>
         </div>
-        {ticket.attachments.length === 0 ? (
+        {(ticket.attachments ?? []).length === 0 ? (
           <p className="mt-3 text-sm text-slate-500">No attachments.</p>
         ) : (
           <ul className="mt-3 space-y-2">
-            {ticket.attachments.map((a) => (
+            {(ticket.attachments ?? []).map((a) => (
               <li key={a.id}>
                 <a
                   href={a.path}

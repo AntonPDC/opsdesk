@@ -26,10 +26,10 @@ const updateSchema = z.object({
 async function canAccessTicket(
   userId: string,
   role: Role,
-  ticket: { requesterId: string }
+  ticket: { requesterId: string; assigneeId: string | null }
 ) {
   if (role === "ADMIN" || role === "AGENT") return true;
-  return ticket.requesterId === userId;
+  return ticket.requesterId === userId || ticket.assigneeId === userId;
 }
 
 export async function GET(

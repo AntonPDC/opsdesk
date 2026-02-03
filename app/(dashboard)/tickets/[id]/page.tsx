@@ -7,10 +7,10 @@ import { TicketDetail } from "@/components/ticket-detail";
 async function canAccess(
   userId: string,
   role: string,
-  ticket: { requesterId: string }
+  ticket: { requesterId: string; assigneeId: string | null }
 ) {
   if (role === "ADMIN" || role === "AGENT") return true;
-  return ticket.requesterId === userId;
+  return ticket.requesterId === userId || ticket.assigneeId === userId;
 }
 
 export default async function TicketPage({

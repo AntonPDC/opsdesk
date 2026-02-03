@@ -9,16 +9,21 @@ export default async function DashboardPage() {
   if (!session?.user) return null;
 
   const where =
-    session.user.role === "USER" ? { requesterId: session.user.id } : {};
+    session.user.role === "USER"
+      ? {
+          OR: [
+            { requesterId: session.user.id },
+            { assigneeId: session.user.id },
+          ],
+        }
+      : {};
 
   const [myOpen, allOpen] = await Promise.all([
     prisma.ticket.count({
       where: {
         ...where,
         status: { in: ["NEW", "IN_PROGRESS", "BLOCKED"] },
-        ...(session.user.role === "USER"
-          ? {}
-          : { assigneeId: session.user.id }),
+        assigneeId: session.user.id,
       },
     }),
     prisma.ticket.count({

@@ -9,7 +9,14 @@ export default async function TicketsPage() {
   if (!session?.user) return null;
 
   const where =
-    session.user.role === "USER" ? { requesterId: session.user.id } : {};
+    session.user.role === "USER"
+      ? {
+          OR: [
+            { requesterId: session.user.id },
+            { assigneeId: session.user.id },
+          ],
+        }
+      : {};
 
   const tickets = await prisma.ticket.findMany({
     where,

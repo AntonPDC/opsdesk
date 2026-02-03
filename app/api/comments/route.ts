@@ -15,7 +15,7 @@ async function canAccessTicket(userId: string, role: Role, ticketId: string) {
   const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
   if (!ticket) return false;
   if (role === "ADMIN" || role === "AGENT") return true;
-  return ticket.requesterId === userId;
+  return ticket.requesterId === userId || ticket.assigneeId === userId;
 }
 
 export async function POST(req: NextRequest) {

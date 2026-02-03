@@ -70,6 +70,12 @@ A mini ServiceNow-style web app for submitting incidents/requests, triaging, ass
 - `lib/` — db, auth, audit helpers, email stubs, utils
 - `prisma/` — schema and seed
 
+## Deployment
+
+Yes. For production use **PostgreSQL** (not SQLite) and set `NEXTAUTH_URL` + `NEXTAUTH_SECRET` to your live URL and a secure secret. On serverless (e.g. Vercel), plan for **object storage** (Vercel Blob, S3) for attachments instead of the local `public/uploads/` folder.
+
+See **[DEPLOYMENT.md](./DEPLOYMENT.md)** for step-by-step options (Vercel, Railway, Render, Fly.io), env vars, and Postgres switch.
+
 ## Email in production
 
 Implement `lib/email.ts` with Resend, SendGrid, or SMTP using env vars (e.g. `RESEND_API_KEY`). The API already calls `sendTicketCreated`, `sendTicketAssigned`, and `sendTicketStatusChanged` where appropriate.
