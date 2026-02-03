@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  name          String
+  role          String    @default("USER") // USER | AGENT | ADMIN
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  ticketsRequested  Ticket[]    @relation("Requester")
+  ticketsAssigned   Ticket[]    @relation("Assignee")
+  comments         Comment[]
+  attachments       Attachment[]
+  auditLogs         AuditLog[]
+}
+
+model Ticket {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  status      String   @default("NEW") // NEW | IN_PROGRESS | BLOCKED | RESOLVED | CLOSED
+  priority    String   @default("MEDIUM") // LOW | MEDIUM | HIGH | CRITICAL
+  category    String   @default("General")
+
+  requesterId String
+  requester   User           @relation("Requester", fields: [requesterId], references: [id])
+  assigneeId  String?
+  assignee    User?          @relation("Assignee", fields: [assigneeId], references: [id])
+
+  slaDueAt    DateTime?
+  resolvedAt  DateTime?
+  closedAt    DateTime?
+
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  comments    Comment[]
+  attachments Attachment[]
+  auditLogs   AuditLog[]
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  body      String
+  ticketId  String
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Attachment {
+  id        String   @id @default(cuid())
+  filename  String
+  path      String
+  mimeType  String   @default("application/octet-stream")
+  size      Int
+  ticketId  String
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  ticketId   String
+  ticket     Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  action     String
+  fieldName  String?
+  oldValue   String?
+  newValue   String?
+  createdAt  DateTime @default(now())
+}
